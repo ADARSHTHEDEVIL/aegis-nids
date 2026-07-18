@@ -1,0 +1,33 @@
+# Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Data (large / regenerable — do not commit raw datasets)
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# Model artifacts
+src/models/registry/*.joblib
+src/models/registry/*.json
+src/models/registry/*.png
+!src/models/registry/.gitkeep
+
+# Logs
+logs/*.log
+
+# Notebooks checkpoints
+notebooks/.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets
+.env

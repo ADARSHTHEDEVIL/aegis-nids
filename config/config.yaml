@@ -1,0 +1,36 @@
+# Aegis-NIDS Central Configuration
+
+paths:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  external_dir: "data/external"
+  model_registry: "src/models/registry"
+  log_file: "logs/aegis_nids.log"
+
+dataset:
+  name: "NSL-KDD"
+  train_file: "KDDTrain+.txt"
+  test_file: "KDDTest+.txt"
+  # NSL-KDD ships with no header row — column names are defined explicitly
+  # in src/data/loader.py (NSL_KDD_COLUMNS) to avoid depending on an external
+  # names file that may not download reliably.
+  label_column: "label"
+  difficulty_column: "difficulty"
+
+preprocessing:
+  binary_classification: true       # True: Normal vs Attack | False: multi-class attack types
+  categorical_columns: ["protocol_type", "service", "flag"]
+  drop_columns: ["difficulty"]      # NSL-KDD's difficulty score is not a model feature
+  test_size: 0.2
+  random_state: 42
+  scaling_method: "standard"        # standard | minmax
+
+training:
+  models_to_compare: ["random_forest", "xgboost"]
+  random_state: 42
+  cv_folds: 5
+
+logging:
+  level: "INFO"
+  max_bytes: 5242880     # 5 MB per log file before rotation
+  backup_count: 3

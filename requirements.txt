@@ -1,0 +1,32 @@
+# Aegis-NIDS — Pinned Dependencies
+# Python 3.10 or 3.11 recommended (Scapy + SHAP both have flaky 3.12 wheels as of this writing)
+
+# --- Core data science ---
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.5.1
+imbalanced-learn==0.12.3      # SMOTE / class imbalance handling (Sprint 2)
+
+# --- Modeling ---
+xgboost==2.1.0
+joblib==1.4.2
+
+# --- Explainability ---
+shap==0.46.0
+matplotlib==3.9.1             # required by shap plotting backend
+
+# --- Live packet simulation ---
+scapy==2.5.0
+
+# --- Dashboard ---
+streamlit==1.37.0
+plotly==5.23.0
+
+# --- Config & utils ---
+pyyaml==6.0.1
+python-dotenv==1.0.1
+
+# --- Testing ---
+pytest==8.3.2
+pytest-cov==5.0.0
