@@ -2,7 +2,7 @@
 # Python 3.10 or 3.11 recommended (Scapy + SHAP both have flaky 3.12 wheels as of this writing)
 
 # --- Core data science ---
-pandas==2.2.2
+pandas==2.2.3
 numpy==1.26.4
 scipy==1.13.1
 scikit-learn==1.5.1
