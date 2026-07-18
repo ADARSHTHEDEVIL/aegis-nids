@@ -4,7 +4,7 @@
 # --- Core data science ---
 pandas==2.2.3
 numpy==1.26.4
-scipy==1.13.1
+scipy>=1.14.0
 scikit-learn==1.5.1
 imbalanced-learn==0.12.3      # SMOTE / class imbalance handling (Sprint 2)
 
