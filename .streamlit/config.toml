@@ -1,0 +1,7 @@
+﻿[server]
+headless = true
+port = 8000
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
