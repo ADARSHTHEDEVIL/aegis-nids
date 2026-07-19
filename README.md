@@ -1,5 +1,28 @@
 # Aegis-NIDS — AI-Based Network Intrusion Detection System
 
+## Installation & Usage
+
+### Installation
+```bash
+pip install -r requirements.txt
+```
+
+### Running Locally
+```bash
+streamlit run app/dashboard.py
+```
+
+Visit: **http://localhost:8501**
+
+### Usage
+1. Select **Live Capture** for real-time network analysis
+2. Or select **Replay .pcap** to upload saved packet files
+3. View attack predictions + SHAP feature importance
+
+---
+
+
+# Aegis-NIDS — AI-Based Network Intrusion Detection System
 A production-grade, end-to-end NIDS built on the NSL-KDD dataset: data pipeline → trained
 XGBoost classifier → SHAP explainability → live Scapy packet capture → interactive
 Streamlit dashboard.
