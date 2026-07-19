@@ -4,6 +4,10 @@ A production-grade, end-to-end NIDS built on the NSL-KDD dataset: data pipeline 
 XGBoost classifier → SHAP explainability → live Scapy packet capture → interactive
 Streamlit dashboard.
 
+**Live demo:** https://aegis-nids-bbjddwwcvyc5ge6fkp98qs.streamlit.app/
+(Replay mode only there — see "Local vs. cloud" note below for why Live Capture requires
+running the app locally.)
+
 ## What this project does
 
 Aegis-NIDS classifies network traffic as **normal** or **attack** in real time, using a
@@ -117,6 +121,19 @@ streamlit run app/dashboard.py
   despite both files being present and correctly committed. The reliable fix was setting
   the Python version explicitly via the app's Settings panel on share.streamlit.io
   (Settings → Python version → 3.11), not just relying on the repo files.
+
+## Local vs. cloud
+
+- **Local (`streamlit run app/dashboard.py` on your own machine):** full functionality,
+  including **Live Capture** mode — sniffs your actual network interface in real time via
+  Scapy/Npcap. Requires admin/root privileges.
+- **Cloud (Streamlit Community Cloud, linked above):** a remote server has no access to
+  your home network, so Live Capture cannot work there — this is a networking constraint,
+  not a bug. **Replay mode** (upload a `.pcap` file) works identically on both.
+- **GitHub Codespaces:** this repo includes a `.devcontainer` config, so you can also click
+  "Code → Codespaces → Create codespace" on GitHub for a zero-setup browser-based instance
+  (Python 3.11 pre-configured, dependencies auto-installed). Same cloud limitation applies:
+  Replay mode only.
 
 ## Project background
 
