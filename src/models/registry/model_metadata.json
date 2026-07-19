@@ -1,0 +1,39 @@
+{
+  "selected_model": "xgboost",
+  "trained_at_utc": "2026-07-19T11:57:34.667747+00:00",
+  "selection_rule": "Highest ROC-AUC; ties within 0.005 broken by highest Recall (prioritizing attack detection over marginal FPR differences)",
+  "all_candidates": {
+    "random_forest": {
+      "model_name": "random_forest",
+      "accuracy": 0.7686745919091554,
+      "precision": 0.9677062868369352,
+      "recall": 0.6141198472687602,
+      "f1": 0.7513943843256901,
+      "roc_auc": 0.9710005145751089,
+      "false_positive_rate": 0.027082689733292142,
+      "false_negative_rate": 0.38588015273123977,
+      "true_positives": 7881,
+      "true_negatives": 9448,
+      "false_positives": 263,
+      "false_negatives": 4952,
+      "cv_roc_auc_mean": 0.9999910266246367,
+      "cv_roc_auc_std": 2.4017112224274692e-06
+    },
+    "xgboost": {
+      "model_name": "xgboost",
+      "accuracy": 0.8034953867991483,
+      "precision": 0.9675086235673751,
+      "recall": 0.6775500662354866,
+      "f1": 0.7969752520623281,
+      "roc_auc": 0.9728786732004152,
+      "false_positive_rate": 0.030068993924415612,
+      "false_negative_rate": 0.32244993376451336,
+      "true_positives": 8695,
+      "true_negatives": 9419,
+      "false_positives": 292,
+      "false_negatives": 4138,
+      "cv_roc_auc_mean": 0.9999918840604604,
+      "cv_roc_auc_std": 6.82699513691544e-06
+    }
+  }
+}

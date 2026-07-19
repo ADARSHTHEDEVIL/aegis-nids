@@ -13,8 +13,6 @@ data/external/*
 !data/external/.gitkeep
 
 # Model artifacts
-src/models/registry/*.joblib
-src/models/registry/*.json
 src/models/registry/*.png
 !src/models/registry/.gitkeep
 
