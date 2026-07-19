@@ -172,7 +172,7 @@ class NIDSLiveEngine:
                 self.alert_callback(result)
 
     def run_live(self, interface: Optional[str] = None, duration_seconds: Optional[int] = None,
-                 packet_count: int = 0) -> dict:
+                 packet_count: int = 0, alert_callback: Optional[Callable] = None) -> dict:
         """
         Sniff live traffic on a network interface.
 
@@ -183,6 +183,17 @@ class NIDSLiveEngine:
                                packet_count is hit or manually interrupted.
             packet_count: stop after this many packets. 0 = unlimited
                           (bounded only by duration_seconds or Ctrl+C).
+            alert_callback: optional override for where results are sent
+                             during THIS call only, falling back to
+                             self.alert_callback afterward. This lets a
+                             single cached/shared engine instance correctly
+                             route results to whichever caller actually
+                             invoked it (e.g. a specific dashboard session's
+                             queue), instead of being permanently locked to
+                             whichever caller happened to construct the
+                             engine first — critical when the engine is
+                             cached and reused across multiple independent
+                             sessions.
 
         Returns:
             Summary dict with connection_count and alert_count.
@@ -191,6 +202,16 @@ class NIDSLiveEngine:
             AegisNIDSError: if live capture cannot start (missing Npcap,
                              insufficient permissions, invalid interface).
         """
+        previous_callback = self.alert_callback
+        if alert_callback is not None:
+            self.alert_callback = alert_callback
+        try:
+            return self._run_live_impl(interface, duration_seconds, packet_count)
+        finally:
+            self.alert_callback = previous_callback
+
+    def _run_live_impl(self, interface: Optional[str], duration_seconds: Optional[int],
+                        packet_count: int) -> dict:
         try:
             from scapy.all import AsyncSniffer
         except ImportError as e:
@@ -271,13 +292,16 @@ class NIDSLiveEngine:
         logger.info(f"Live capture finished. {summary}")
         return summary
 
-    def run_replay(self, pcap_path: Path) -> dict:
+    def run_replay(self, pcap_path: Path, alert_callback: Optional[Callable] = None) -> dict:
         """
         Replay packets from a .pcap file through the same classification
         pipeline as live capture. Does not require elevated privileges.
 
         Args:
             pcap_path: path to a .pcap or .pcapng file.
+            alert_callback: optional override for where results are sent
+                             during THIS call only (see run_live() docstring
+                             for why this matters with a shared/cached engine).
 
         Returns:
             Summary dict with connection_count and alert_count.
@@ -285,6 +309,15 @@ class NIDSLiveEngine:
         Raises:
             AegisNIDSError: if the file doesn't exist or can't be parsed.
         """
+        previous_callback = self.alert_callback
+        if alert_callback is not None:
+            self.alert_callback = alert_callback
+        try:
+            return self._run_replay_impl(pcap_path)
+        finally:
+            self.alert_callback = previous_callback
+
+    def _run_replay_impl(self, pcap_path: Path) -> dict:
         pcap_path = Path(pcap_path)
         if not pcap_path.exists():
             raise AegisNIDSError(f"Pcap file not found: {pcap_path}")

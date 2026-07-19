@@ -279,15 +279,18 @@ def _inject_console_css() -> None:
 # constantly for no reason.
 # --------------------------------------------------------------------- #
 @st.cache_resource(show_spinner="Loading trained model, preprocessor, and SHAP explainer...")
-def load_engine(_result_callback):
+def load_engine():
     """
-    Load the NIDSLiveEngine once and cache it for the session.
-    The leading underscore on _result_callback tells Streamlit's cache
-    not to try hashing the callback function (it's not meaningfully
-    hashable, and doesn't need to be — the engine itself is what we're
-    caching).
+    Load the NIDSLiveEngine once and cache it for the ENTIRE server process
+    (st.cache_resource is a global cache, not per-session). Deliberately
+    constructed with NO alert_callback bound here — the callback is instead
+    passed per-call to run_live()/run_replay() (see CaptureController
+    below), so this single shared, expensive-to-load engine correctly
+    routes results to whichever session's queue actually invoked it,
+    rather than being permanently locked to whichever session happened to
+    trigger construction first.
     """
-    return NIDSLiveEngine(alert_callback=_result_callback)
+    return NIDSLiveEngine()
 
 
 class CaptureController:
@@ -324,7 +327,10 @@ class CaptureController:
 
         def _run():
             try:
-                self.summary = engine.run_live(interface=interface, duration_seconds=duration)
+                self.summary = engine.run_live(
+                    interface=interface, duration_seconds=duration,
+                    alert_callback=self._queue_callback,
+                )
             except AegisNIDSError as e:
                 self.error = str(e)
                 logger.error(f"Live capture thread failed: {e}")
@@ -343,7 +349,7 @@ class CaptureController:
 
         def _run():
             try:
-                self.summary = engine.run_replay(pcap_path)
+                self.summary = engine.run_replay(pcap_path, alert_callback=self._queue_callback)
             except AegisNIDSError as e:
                 self.error = str(e)
                 logger.error(f"Replay thread failed: {e}")
@@ -512,9 +518,9 @@ def main():
     _init_session_state()
     controller: CaptureController = st.session_state.controller
 
-    # --- Load engine (cached) ---
+    # --- Load engine (cached globally, not bound to any session) ---
     try:
-        engine = load_engine(controller._queue_callback)
+        engine = load_engine()
     except ModelNotTrainedError:
         _render_header(False)
         st.error(
@@ -539,6 +545,11 @@ def main():
                          label_visibility="collapsed")
 
         if mode == "Live Capture":
+            st.caption(
+                "⚠️ Requires this app to be running on a machine with direct "
+                "access to a real network interface (e.g. your own laptop). "
+                "On a cloud-hosted deployment, use Replay mode instead."
+            )
             try:
                 interfaces = list_available_interfaces()
             except Exception as e:
@@ -547,9 +558,26 @@ def main():
 
             iface_names = [i["name"] for i in interfaces if i.get("ips") and any(i["ips"])] or \
                           [i["name"] for i in interfaces]
+
+            # Prefer a real physical adapter (Wi-Fi/Ethernet) over virtual
+            # ones. A simple "has an IP" check isn't enough to tell them
+            # apart — WSL's vEthernet adapter and Hyper-V virtual switches
+            # get real IPs too, and one of those silently outranking Wi-Fi
+            # in the default selection previously caused a capture to
+            # complete with 0 connections with no indication anything was
+            # wrong. Deprioritize known virtual/loopback name patterns.
+            _VIRTUAL_NAME_HINTS = ("vethernet", "loopback", "wan miniport", "direct", "npf_")
+            default_idx = 0
+            for idx, name in enumerate(iface_names):
+                if not any(hint in name.lower() for hint in _VIRTUAL_NAME_HINTS):
+                    default_idx = idx
+                    break
+
             selected_iface = st.selectbox(
-                "Network interface", iface_names, disabled=controller.is_running,
-                help="Prefer the interface with a real IP (e.g. 192.168.x.x or 10.x.x.x).",
+                "Network interface", iface_names, index=default_idx, disabled=controller.is_running,
+                help="Prefer the interface with a real IP (e.g. 192.168.x.x or 10.x.x.x). "
+                     "Virtual adapters (vEthernet, WSL, loopback) are deprioritized by default "
+                     "since they carry little to no real traffic.",
             )
             duration = st.slider("Capture duration (seconds)", 10, 180, 30, disabled=controller.is_running)
 
